@@ -30,6 +30,6 @@ class Product:
                 """Цена со скидкой 25% (упрощённо)."""
                 return self.price * 0.75 
     def is_available(self):
-    """Товар доступен для заказа?"""
-    return self.quantity > 0
+        """Товар доступен для заказа?"""
+        return self.quantity > 0
 
