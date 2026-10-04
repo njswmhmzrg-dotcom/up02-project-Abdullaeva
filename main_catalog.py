@@ -1,46 +1,58 @@
+"""Главное окно приложения с каталогом."""
 import tkinter as tk
+from tkinter import ttk
+from config import APP_TITLE, FONT_FAMILY
 import db_products as db
+from catalog import create_product_card
 
 
-def show_catalog():
-    root = tk.Tk()
-    root.title("Каталог товаров")
-    root.geometry("800x600")
+class CatalogWindow:
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title(APP_TITLE)
+        self.root.geometry("900x700")
+        self.build_ui()
+        self.load_products()
 
-    # Используем Text — на macOS работает надёжнее
-    text = tk.Text(
-        root,
-        font=("Arial", 14),
-        bg="white",
-        fg="black",
-        wrap="word",
-        padx=15,
-        pady=15
-    )
-    text.pack(fill="both", expand=True)
+    def build_ui(self):
+        # Заголовок
+        header = tk.Frame(self.root, bg="#D2F6E7")
+        header.pack(fill="x")
+        tk.Label(
+            header, text="КАТАЛОГ ТОВАРОВ",
+            font=(FONT_FAMILY, 16, "bold"),
+            bg="#D2F6E7"
+        ).pack(pady=15)
 
-    text.insert("end", "=== КАТАЛОГ ТОВАРОВ ===\n\n")
+        # Область с прокруткой
+        self.canvas = tk.Canvas(self.root, bg="white", highlightthickness=0)
+        scrollbar = ttk.Scrollbar(
+            self.root, orient="vertical", command=self.canvas.yview
+        )
+        self.catalog_frame = tk.Frame(self.canvas, bg="white")
 
-    # Загружаем товары
-    products = db.get_all_products()
-    print(f"Загружено товаров: {len(products)}")
+        self.catalog_frame.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(
+                scrollregion=self.canvas.bbox("all")
+            )
+        )
 
-    for p in products:
-        qty = p.quantity
+        self.canvas.create_window((0, 0), window=self.catalog_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=scrollbar.set)
+        self.canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
 
-        # Товар с малым количеством — помечаем звёздочкой
-        marker = "⚠ " if qty <= 3 else "   "
+    def load_products(self):
+        """Загружает товары из БД и создаёт карточки."""
+        products = db.get_all_products()
+        print(f"Загружено товаров: {len(products)}")
+        for p in products:
+            create_product_card(self.catalog_frame, p)
 
-        text.insert("end", f"{marker}{p.name}\n")
-        text.insert("end", f"      Категория:   {p.category}\n")
-        text.insert("end", f"      Количество: {p.indicator()} ({qty})\n")
-        text.insert("end", f"      Цена:       {p.price} руб.\n\n")
-
-    # Делаем только для чтения
-    text.config(state="disabled")
-
-    root.mainloop()
+    def run(self):
+        self.root.mainloop()
 
 
 if __name__ == "__main__":
-    show_catalog()
+    CatalogWindow().run()

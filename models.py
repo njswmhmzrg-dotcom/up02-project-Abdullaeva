@@ -1,14 +1,19 @@
-"""Модели данных для проекта УП.02."""
 from datetime import datetime
 from discount import calculate_price_with_discount
 
+
 class Product:
-    def __init__(self, product_id, name, category, price, quantity):
+    def __init__(self, product_id, name, category, manufacturer,
+                 composition, price, quantity, image="", size=""):
         self.id = product_id
         self.name = name
         self.category = category
+        self.manufacturer = manufacturer
+        self.composition = composition
         self.price = price
         self.quantity = quantity
+        self.image = image
+        self.size = size
 
     def total(self):
         return self.price * self.quantity
@@ -25,11 +30,11 @@ class Product:
         return (f"{self.name} ({self.category}): "
                 f"{self.price} руб. × {self.quantity} = {self.total()} руб. "
                 f"({self.indicator()})")
-                
+
     def discounted_price(self):
-                """Цена со скидкой 25% (упрощённо)."""
-                return self.price * 0.75 
+        """Цена со скидкой 25%."""
+        return self.price * 0.75
+
     def is_available(self):
         """Товар доступен для заказа?"""
         return self.quantity > 0
-
