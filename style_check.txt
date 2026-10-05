@@ -1,0 +1,9 @@
+#FFFFFF — основной фон окна
+#D2F6E7 — фон шапки каталога
+#70B2AF — кнопки и акценты
+#ff8080 — подсветка товаров с количеством ≤3
+
+Шрифт: Calibri (на Linux — Carlito)
+Иконка приложения: resources/icon.ico (Windows), resources/icon.png (Mac/Linux)
+Логотип: resources/logo.png (не искажать пропорции!)
+Заглушка: resources/picture.png
