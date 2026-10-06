@@ -84,3 +84,7 @@ def create_product_card(parent, product):
     ).pack(fill="x")
 
     return card
+
+def _indicator(qty):
+    """Индикатор много/мало."""
+    return "много" if qty > 5 else "мало"
