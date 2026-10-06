@@ -1,35 +1,16 @@
-"""Тестирование индикатора «много/мало»."""
 from catalog import _indicator
 
-
 def test_indicator():
-    test_cases = [
-        (10, "много", "10 > 5"),
-        (6, "много", "6 > 5"),
-        (5, "мало", "5 <= 5 (граница!)"),
-        (4, "мало", "4 <= 5"),
-        (0, "мало", "0 <= 5"),
-        # Дописано (задание 4.6)
-        (100, "много", "большое число"),
-        (1, "мало", "минимальное > 0"),
-        (-1, "мало", "отрицательное"),
-    ]
-
-    print("=" * 60)
-    print("ТЕСТИРОВАНИЕ ИНДИКАТОРА")
-    print("=" * 60)
-
+    cases = [(10,"много","10>5"),(6,"много","6>5"),(5,"мало","5<=5"),
+             (4,"мало","4<=5"),(0,"мало","0<=5"),(100,"много","большое"),
+             (1,"мало","минимум"),(-1,"мало","отрицательное")]
     passed = 0
-    for qty, expected, comment in test_cases:
-        result = _indicator(qty)
-        status = "OK" if result == expected else "FAIL"
-        if result == expected:
-            passed += 1
-        print(f"{status} qty={qty}: {result} (ожидалось {expected}) — {comment}")
-
-    print("=" * 60)
-    print(f"Пройдено: {passed} / {len(test_cases)}")
-
+    for qty, exp, c in cases:
+        r = _indicator(qty)
+        ok = "OK" if r == exp else "FAIL"
+        if r == exp: passed += 1
+        print(f"{ok} qty={qty}: {r} ({c})")
+    print(f"Пройдено: {passed}/{len(cases)}")
 
 if __name__ == "__main__":
     test_indicator()
