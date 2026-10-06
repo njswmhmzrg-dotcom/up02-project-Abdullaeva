@@ -5,6 +5,7 @@ from styles import COLOR_HIGHLIGHT, COLOR_MAIN_BG
 
 def test_highlight():
     test_cases = [
+        # Базовые
         (10, COLOR_MAIN_BG, "10 > 3 — нет подсветки"),
         (5, COLOR_MAIN_BG, "5 > 3 — нет подсветки"),
         (4, COLOR_MAIN_BG, "4 > 3 — нет подсветки"),
@@ -12,8 +13,10 @@ def test_highlight():
         (2, COLOR_HIGHLIGHT, "2 <= 3 — подсветка"),
         (1, COLOR_HIGHLIGHT, "1 <= 3 — подсветка"),
         (0, COLOR_HIGHLIGHT, "0 <= 3 — подсветка"),
-        (1000, COLOR_MAIN_BG, "1000 > 3 — нет подсветки"),
-        (-1, COLOR_HIGHLIGHT, "-1 <= 3 — подсветка (крайний)"),
+        # ДЗ — три дополнительных теста
+        (1000, COLOR_MAIN_BG, "1000 > 3 — большое число, нет подсветки"),
+        (-1, COLOR_HIGHLIGHT, "-1 <= 3 — отрицательное (крайний случай)"),
+        (3, COLOR_HIGHLIGHT, "3 <= 3 — повторно (граница)"),
     ]
 
     print("=" * 70)
