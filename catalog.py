@@ -88,3 +88,8 @@ def create_product_card(parent, product):
 def _indicator(qty):
     """Индикатор много/мало."""
     return "много" if qty > 5 else "мало"
+
+
+def _get_card_color(qty):
+    """Возвращает цвет фона карточки."""
+    return COLOR_HIGHLIGHT if qty <= 3 else "#FFFFFF"
