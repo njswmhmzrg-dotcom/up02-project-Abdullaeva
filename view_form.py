@@ -5,10 +5,11 @@ from styles import (
     COLOR_MAIN_BG, COLOR_SECONDARY_BG, COLOR_ACCENT,
     FONT_SIZE_NORMAL, FONT_SIZE_HEADER, FONT_SIZE_TITLE, font
 )
-from resources import load_image, get_product_image
+from resources import get_product_image
 from order_manager import (
     add_order_to_db,
-    update_product_quantity,
+    add_order_item,
+    decrease_product_quantity,
     get_product_quantity
 )
 from error_handler import validate_positive_int
@@ -25,7 +26,6 @@ class ViewForm:
         self.build_ui()
 
     def build_ui(self):
-        # Шапка
         header = tk.Frame(self.window, bg=COLOR_SECONDARY_BG, height=60)
         header.pack(fill="x")
         header.pack_propagate(False)
@@ -33,11 +33,9 @@ class ViewForm:
                  font=font(FONT_SIZE_TITLE, bold=True),
                  bg=COLOR_SECONDARY_BG).pack(pady=15)
 
-        # Основная область
         main = tk.Frame(self.window, bg=COLOR_MAIN_BG)
         main.pack(fill="both", expand=True, padx=20, pady=20)
 
-        # Изображение
         img_frame = tk.Frame(main, bg=COLOR_MAIN_BG)
         img_frame.pack(side="left", padx=10)
         img_path = f"resources/{self.product.image}" if self.product.image else None
@@ -47,7 +45,6 @@ class ViewForm:
             img_label.image = photo
             img_label.pack()
 
-        # Информация
         info_frame = tk.Frame(main, bg=COLOR_MAIN_BG)
         info_frame.pack(side="left", fill="both", expand=True, padx=20)
 
@@ -57,7 +54,6 @@ class ViewForm:
         self._add_field(info_frame, "Состав", self.product.composition)
         self._add_field(info_frame, "Цена", f"{self.product.price} руб.")
 
-        # === Поле ввода количества ===
         qty_frame = tk.Frame(self.window, bg=COLOR_MAIN_BG)
         qty_frame.pack(fill="x", padx=20, pady=5)
         tk.Label(qty_frame, text="Количество:",
@@ -67,30 +63,24 @@ class ViewForm:
         tk.Entry(qty_frame, textvariable=self.qty_var, width=5,
                  font=font(FONT_SIZE_NORMAL)).pack(side="left", padx=5)
 
-        # === Выбор размера ===
         size_frame = tk.Frame(self.window, bg=COLOR_MAIN_BG)
         size_frame.pack(fill="x", padx=20, pady=5)
         tk.Label(size_frame, text="Размер:",
                  font=font(FONT_SIZE_NORMAL),
                  bg=COLOR_MAIN_BG).pack(side="left", padx=5)
-
-        # Получаем размеры (пока из одного поля товара)
         sizes = [str(self.product.size)] if self.product.size else ["—"]
         self.size_var = tk.StringVar(value=sizes[0])
         ttk.Combobox(size_frame, textvariable=self.size_var,
                      values=sizes, state="readonly", width=5,
                      font=font(FONT_SIZE_NORMAL)).pack(side="left", padx=5)
 
-        # Кнопки
         btn_frame = tk.Frame(self.window, bg=COLOR_MAIN_BG)
         btn_frame.pack(fill="x", pady=10)
-
         tk.Button(btn_frame, text="Добавить в заказ",
                   command=self.add_to_order,
                   bg=COLOR_ACCENT, fg="white",
                   font=font(FONT_SIZE_NORMAL),
                   padx=15, pady=5).pack(side="left", padx=20)
-
         tk.Button(btn_frame, text="Назад",
                   command=self.window.destroy,
                   bg=COLOR_ACCENT, fg="white",
@@ -113,31 +103,34 @@ class ViewForm:
             messagebox.showerror("Ошибка", "Товар не выбран")
             return
 
-        # Валидация количества
         ok, result = validate_positive_int(self.qty_var.get(), "Количество")
         if not ok:
             messagebox.showwarning("Ошибка ввода", result)
             return
         qty = result
 
-        # Проверка, что qty не больше доступного
         current_qty = get_product_quantity(self.product.id)
         if qty > current_qty:
-            messagebox.showwarning(
-                "Ошибка",
-                f"Доступно только {current_qty} шт."
-            )
+            messagebox.showwarning("Ошибка",
+                                   f"Доступно только {current_qty} шт.")
             return
 
-        # Сохраняем заказ
         try:
-            new_qty = current_qty - qty
-            add_order_to_db("Иванов Иван Иванович", self.product.id, qty)
-            update_product_quantity(self.product.id, new_qty)
+            # Создаём заказ с 1 позицией через create_order (см. order_manager)
+            from order_manager import create_order
+            size = self.size_var.get()
+            price = self.product.price
+            items = [(self.product.id, size, qty, price)]
+            order_id = create_order("Иванов Иван Иванович", items)
+
+            if order_id is None:
+                messagebox.showerror("Ошибка",
+                                     "Не удалось создать заказ")
+                return
+
             messagebox.showinfo(
                 "Успех",
-                f"Заказ оформлен! {qty} шт., размер {self.size_var.get()}. "
-                f"Осталось: {new_qty}"
+                f"Заказ №{order_id} оформлен! {qty} шт., размер {size}."
             )
             if self.on_add_to_order:
                 self.on_add_to_order()

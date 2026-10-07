@@ -4,7 +4,10 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import os
 from config import APP_TITLE, FONT_FAMILY
-from styles import COLOR_SECONDARY_BG, COLOR_MAIN_BG, FONT_SIZE_TITLE, font
+from styles import (
+    COLOR_MAIN_BG, COLOR_SECONDARY_BG, COLOR_ACCENT,
+    FONT_SIZE_NORMAL, FONT_SIZE_TITLE, font
+)
 import db_products as db
 from catalog import create_product_card
 from resources import load_image_proportional, PATH_LOGO, PATH_ICON
@@ -42,7 +45,7 @@ class CatalogWindow:
         header.pack(fill="x")
         header.pack_propagate(False)
 
-        # Логотип
+        # Логотип слева
         logo = load_image_proportional(PATH_LOGO, max_size=(60, 60))
         if logo:
             logo_label = tk.Label(header, image=logo, bg=COLOR_SECONDARY_BG)
@@ -52,7 +55,16 @@ class CatalogWindow:
             tk.Label(header, text="[ЛОГОТИП]",
                      bg=COLOR_SECONDARY_BG).pack(side="left", padx=15)
 
-        # Заголовок
+        # Кнопка "Заказы" справа
+        tk.Button(
+            header, text="Заказы",
+            command=self.open_orders,
+            bg=COLOR_ACCENT, fg="white",
+            font=font(FONT_SIZE_NORMAL),
+            padx=10, pady=5
+        ).pack(side="right", padx=15)
+
+        # Заголовок по центру
         tk.Label(
             header, text="КАТАЛОГ ТОВАРОВ",
             font=font(FONT_SIZE_TITLE, bold=True),
@@ -60,23 +72,27 @@ class CatalogWindow:
         ).pack(expand=True)
 
         # Область с прокруткой
-        self.canvas = tk.Canvas(self.root, bg=COLOR_MAIN_BG, highlightthickness=0)
+        self.canvas = tk.Canvas(self.root, bg=COLOR_MAIN_BG,
+                                highlightthickness=0)
         scrollbar = ttk.Scrollbar(self.root, orient="vertical",
                                   command=self.canvas.yview)
         self.catalog_frame = tk.Frame(self.canvas, bg=COLOR_MAIN_BG)
 
         self.catalog_frame.bind(
             "<Configure>",
-            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+            lambda e: self.canvas.configure(
+                scrollregion=self.canvas.bbox("all")
+            )
         )
 
-        self.canvas.create_window((0, 0), window=self.catalog_frame, anchor="nw")
+        self.canvas.create_window((0, 0), window=self.catalog_frame,
+                                  anchor="nw")
         self.canvas.configure(yscrollcommand=scrollbar.set)
         self.canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
     def load_products(self):
-        """Загружает товары с обработкой ошибок и передачей callback."""
+        """Загружает товары с обработкой ошибок и callback для refresh."""
         products = safe_call(db.get_all_products) or []
         print(f"Загружено товаров: {len(products)}")
         for p in products:
@@ -88,6 +104,11 @@ class CatalogWindow:
         for widget in self.catalog_frame.winfo_children():
             widget.destroy()
         self.load_products()
+
+    def open_orders(self):
+        """Открывает окно списка заказов."""
+        from orders_window import OrdersWindow
+        OrdersWindow(self.root)
 
     def run(self):
         self.root.mainloop()
