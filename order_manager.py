@@ -191,3 +191,17 @@ def delete_order_item(item_id):
         return False
     finally:
         conn.close()
+
+
+def get_order_total(order_id):
+    """Возвращает итоговую сумму заказа."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT SUM(количество * цена)
+        FROM Состав_заказа
+        WHERE заказ_id = ?
+    """, (order_id,))
+    row = cur.fetchone()
+    conn.close()
+    return row[0] or 0.0
